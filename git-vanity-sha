@@ -29,15 +29,12 @@ module GitDead
     [committer.string, committer[:timestamp].to_i, committer[:timezone]]
   end
 
-  def apply_timestamp_delta(commit_info, delta)
-    committer_line, commit_ts = GitDead.extract_committer(commit_info)
-    new_committer_line = committer_line.sub(commit_ts.to_s, (commit_ts + delta).to_s)
-    commit_info.sub(committer_line, new_committer_line)
-  end
-
   def search(commit_info, hex_prefix)
+    committer_line, commit_ts = GitDead.extract_committer(commit_info)
+
     DELTAS.each do |delta|
-      new_commit = apply_timestamp_delta(commit_info, delta)
+      new_committer_line = committer_line.sub(commit_ts.to_s, (commit_ts + delta).to_s)
+      new_commit = commit_info.sub(committer_line, new_committer_line)
       new_sha = get_sha(new_commit)
       return [delta, new_sha] if new_sha.start_with?(hex_prefix)
     end
@@ -53,26 +50,29 @@ module GitDead
   end
 end
 
-target_prefix = ARGV[0]
 if ARGV.length != 1 || ARGV[0].length < 1
-  puts "usage: git vanity-sha cafe"
+  puts "usage: git vanity-sha prefix"
+  puts "example: git vanity-sha CAFE"
   exit(1)
 end
+
+target_prefix = ARGV[0].downcase
+
 original_commit_info = GitDead.get_commit_info()
 _, original_ts, original_tz = GitDead.extract_committer(original_commit_info)
-result = GitDead.search(original_commit_info, ARGV[0])
+result = GitDead.search(original_commit_info, target_prefix)
 
 if result
   delta, sha = result
   original_time = Time.at(original_ts)
   new_time = Time.at(original_ts + delta)
   puts "SHA found: #{sha.sub(target_prefix, "\e[32m#{target_prefix}\e[0m")}"
-  puts "Change committer timestamp to #{new_time}?"
+  puts "Change committer timestamp to #{new_time}? This will amend your commit."
   print "(y/n): "
   if STDIN.gets.chomp == "y"
     `LC_ALL=C GIT_COMMITTER_DATE=\"#{original_ts+delta}#{original_tz}\" git commit --amend --no-edit`
     puts "\n" + "-" * 47
-    puts `git show HEAD`
+    puts `git show --quiet --format=short HEAD`
   else
     puts "aborting"
   end
