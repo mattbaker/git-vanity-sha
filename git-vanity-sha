@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'digest'
 
-module GitDead
+module VanitySha
   extend self
 
   COMMITTER_PATTERN = /^committer .* \<.*\> (?<timestamp>\d+)(?<timezone>.*$)/
@@ -61,9 +61,9 @@ if ARGV.length != 1 || ARGV[0].length < 1
 end
 
 target_prefix = ARGV[0].downcase
-original_commit_info = GitDead.get_commit_info()
-_, original_ts, original_tz = GitDead.extract_committer(original_commit_info)
-result = GitDead.search(original_commit_info, target_prefix)
+original_commit_info = VanitySha.get_commit_info()
+_, original_ts, original_tz = VanitySha.extract_committer(original_commit_info)
+result = VanitySha.search(original_commit_info, target_prefix)
 
 if result
   delta, sha = result
@@ -74,7 +74,7 @@ if result
   print "(y/n): "
 
   if STDIN.gets.chomp == "y"
-    amend_commit(new_ts, original_tz)
+    VanitySha.amend_commit(new_ts, original_tz)
     puts "\n" + "-" * 47
     puts `git show --quiet --format=short HEAD`
   else
