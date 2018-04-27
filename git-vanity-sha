@@ -63,6 +63,9 @@ end
 target_prefix = ARGV[0].downcase
 original_commit_info = VanitySha.get_commit_info()
 _, original_ts, original_tz = VanitySha.extract_committer(original_commit_info)
+
+puts "Searching for new SHA...\n"
+
 result = VanitySha.search(original_commit_info, target_prefix)
 
 if result
