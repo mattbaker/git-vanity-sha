@@ -30,7 +30,7 @@ module GitDead
   end
 
   def search(commit_info, hex_prefix)
-    committer_line, commit_ts = GitDead.extract_committer(commit_info)
+    committer_line, commit_ts = extract_committer(commit_info)
 
     DELTAS.each do |delta|
       new_committer_line = committer_line.sub(commit_ts.to_s, (commit_ts + delta).to_s)
@@ -45,6 +45,10 @@ module GitDead
     Digest::SHA1.hexdigest "#{commit_header(commit_info)}#{commit_info}"
   end
 
+  def amend_commit(new_ts, original_tz)
+    `LC_ALL=C GIT_COMMITTER_DATE=\"#{new_ts}#{original_tz}\" git commit --amend --no-edit`
+  end
+
   def commit_header(commit_info)
     "commit #{commit_info.length}\0"
   end
@@ -57,25 +61,25 @@ if ARGV.length != 1 || ARGV[0].length < 1
 end
 
 target_prefix = ARGV[0].downcase
-
 original_commit_info = GitDead.get_commit_info()
 _, original_ts, original_tz = GitDead.extract_committer(original_commit_info)
 result = GitDead.search(original_commit_info, target_prefix)
 
 if result
   delta, sha = result
-  original_time = Time.at(original_ts)
-  new_time = Time.at(original_ts + delta)
+  new_ts = original_ts + delta
+
   puts "SHA found: #{sha.sub(target_prefix, "\e[32m#{target_prefix}\e[0m")}"
-  puts "Change committer timestamp to #{new_time}? This will amend your commit."
+  puts "Change committer timestamp to #{Time.at(new_ts)}? This will amend your commit."
   print "(y/n): "
+
   if STDIN.gets.chomp == "y"
-    `LC_ALL=C GIT_COMMITTER_DATE=\"#{original_ts+delta}#{original_tz}\" git commit --amend --no-edit`
+    amend_commit(new_ts, original_tz)
     puts "\n" + "-" * 47
     puts `git show --quiet --format=short HEAD`
   else
-    puts "aborting"
+    puts "Aborting."
   end
 else
-  puts "Failed to generate a sha with prefix #{target_prefix}"
+  puts "Failed to generate a sha with prefix #{target_prefix}."
 end
