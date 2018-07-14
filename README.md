@@ -66,3 +66,7 @@ If you are worried something could go wrong while using this then you are both p
 ### It didn't find a SHA with the prefix I wanted :(
 
 If you're really determined, then change `TIMESTAMP_DELTA_MAX` to a huge number and go for a walk and maybe you'll get lucky.
+
+### It doesn't work, the hash doesn't have the proper prefix!
+
+Do you have commit signing enabled? You need to disable it, otherwise it won't work due to git limitations.
