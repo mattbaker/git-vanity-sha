@@ -61,7 +61,7 @@ Probably.
 
 ### Will you help me if something goes wrong?
 
-If you are worried something could go wrong while using this then you are both practical and a person who should not use this program.
+Oh god no.
 
 ### It didn't find a SHA with the prefix I wanted :(
 
