@@ -46,7 +46,7 @@ module VanitySha
   end
 
   def amend_commit(new_ts, original_tz)
-    `LC_ALL=C GIT_COMMITTER_DATE=\"#{new_ts}#{original_tz}\" git commit --amend --no-edit`
+    `LC_ALL=C GIT_COMMITTER_DATE=\"#{new_ts}#{original_tz}\" git commit --allow-empty --amend --no-edit`
   end
 
   def commit_header(commit_info)
